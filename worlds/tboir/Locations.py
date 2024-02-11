@@ -6,7 +6,7 @@ class TheBindingOfIsaacRepentanceLocation(Location):
     game: str = "The Binding of Isaac Rebirth"
 
 
-base_id = 78000
+base_id = 7880000
 
 base_location_table = {
     "Run End": None

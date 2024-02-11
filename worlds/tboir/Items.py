@@ -20,7 +20,7 @@ class TheBindingOfIsaacRepentanceItem(Item):
     game: str = "The Binding of Isaac Repentance"
 
 
-base_id = 78000
+base_id = 7880000
 
 junk_items = {
     "Random Pickup": ItemData(base_id + 31, ItemClassification.filler),
@@ -63,7 +63,7 @@ item_table = {
     "Demon Baggar Item": ItemData(base_id + 13, ItemClassification.progression),
     "Key Master Item": ItemData(base_id + 14, ItemClassification.progression),
     "Battery Bum Item": ItemData(base_id + 15, ItemClassification.progression),
-    "Mom's Chest Item": ItemData(78016, ItemClassification.progression),
+    "Mom's Chest Item": ItemData(base_id + 16, ItemClassification.progression),
     "Greed Treasure Room Item": ItemData(base_id + 17, ItemClassification.progression),
     "Greed Boss Item": ItemData(base_id + 18, ItemClassification.progression),
     "Greed Shop Item": ItemData(base_id + 19, ItemClassification.progression),
@@ -833,17 +833,17 @@ default_junk_items_weights = {
 }
 
 default_weights = {
-    "Treasure Room Item": 10,
-    "Shop Item": 10,
-    "Boss Item": 8,
-    "Devil Deal Item": 5,
-    "Angel Deal Item": 5,
-    "Secret Room Item": 6,
-    "Library Item": 4,
-    "Curse Room Item": 4,
-    "Planetarium Item": 1,
-    "Golden Chest Item": 6,
-    "Red Chest Item": 6,
+    "Treasure Room Item": 15,  # 15->20%
+    "Shop Item": 15,  # 15->20%
+    "Boss Item": 12,  # 12->15%
+    "Devil Deal Item": 6,  # 7->7%
+    "Angel Deal Item": 6,  # 7->7%
+    "Secret Room Item": 8,  # 9->10%
+    "Library Item": 1,  # 6->1%
+    "Curse Room Item": 4,  # 6->5%
+    "Planetarium Item": 1,  # 1->1%
+    "Golden Chest Item": 8,  # 9->10%
+    "Red Chest Item": 1,  # 9->1%
 }
 
 lookup_id_to_name: typing.Dict[int, str] = {data.id: name for name, data in item_table.items() if data.id}
