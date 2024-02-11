@@ -1,15 +1,13 @@
 import logging
-import math
 import string
-
-from .Items import TheBindingOfIsaacRepentanceItem, item_table, default_weights, default_junk_items_weights, \
-    default_trap_items_weights
-from .Locations import location_table, TheBindingOfIsaacRepentanceLocation, base_location_table
-from .Rules import set_rules
-from .Options import tobir_options
 
 from BaseClasses import Region, Entrance, Item, MultiWorld, Tutorial, ItemClassification, CollectionState
 from worlds.AutoWorld import World, WebWorld
+from .Items import TheBindingOfIsaacRepentanceItem, item_table, default_weights, default_junk_items_weights, \
+    default_trap_items_weights
+from .Locations import location_table, TheBindingOfIsaacRepentanceLocation, base_location_table
+from .Options import IsaacOptions, ItemWeights
+from .Rules import set_rules
 
 
 class TheBindingOfIsaacRepentanceWeb(WebWorld):
@@ -30,8 +28,9 @@ class TheBindingOfIsaacRepentanceWorld(World):
     human abilities and enabling him to fight off droves of mysterious creatures, discover secrets and fight his way
     to safety.
     """
-    game: str = "The Binding of Isaac Repentance"
-    option_definitions = tobir_options
+    game = "The Binding of Isaac Repentance"
+    options_dataclass = IsaacOptions
+    options: IsaacOptions
     topology_present = False
 
     item_name_to_id = {name: data.id for name, data in item_table.items()}
@@ -39,7 +38,6 @@ class TheBindingOfIsaacRepentanceWorld(World):
     item_name_groups = {
         "Any Progression": [name for name, data in item_table.items() if data.is_progression() and data.id is not None]}
 
-    data_version = 5
     web = TheBindingOfIsaacRepentanceWeb()
 
     progression_item_count: int = 0
@@ -52,47 +50,45 @@ class TheBindingOfIsaacRepentanceWorld(World):
             logging.warning(f"The name {self.multiworld.player_name[self.player]} for a TBoI world contains "
                             f"non-alphanumerical characters. You are not guaranteed to be able to enter the name "
                             f"ingame and may have to edit the games savefile to connect.")
-        if self.multiworld.required_locations[self.player].value > self.multiworld.total_locations[self.player].value:
-            self.multiworld.total_locations[self.player].value = self.multiworld.required_locations[self.player].value
+        if self.options.required_locations.value > self.options.total_locations.value:
+            self.options.total_locations.value = self.options.required_locations.value
 
         self.junk_item_count = round(
-            self.multiworld.total_locations[self.player] * (self.multiworld.junk_percentage[self.player] / 100))
-        self.progression_item_count = self.multiworld.total_locations[self.player] - self.junk_item_count
+            self.options.total_locations.value * (self.options.junk_percentage.value / 100))
+        self.progression_item_count = self.options.total_locations.value - self.junk_item_count
 
         self.trap_item_count = round(
-            self.junk_item_count * (self.multiworld.trap_percentage[self.player] / 100))
+            self.junk_item_count * (self.options.trap_percentage.value / 100))
         self.junk_item_count = self.junk_item_count - self.trap_item_count
 
     def create_items(self):
         # Generate item pool
         itempool = []
 
-        if self.multiworld.item_weights[self.player] == 99:
-            item_weights = {name: val for name, val in self.multiworld.custom_item_weights[self.player].value.items()}
+        if self.options.item_weights.value == ItemWeights.option_custom:
+            item_weights = {name: val for name, val in self.options.custom_item_weights.value.items()}
         else:
             item_weights = default_weights
 
         # Fill non-junk items
-        itempool += self.multiworld.random.choices(list(item_weights.keys()), weights=list(item_weights.values()),
+        itempool += self.random.choices(list(item_weights.keys()), weights=list(item_weights.values()),
                                                    k=self.progression_item_count)
 
-        trap_weights = {name: val for name, val in self.multiworld.trap_item_weights[self.player].value.items()}
-        junk_weights = {name: val for name, val in self.multiworld.custom_junk_item_weights[self.player].value.items()}
+        trap_weights = {name: val for name, val in self.options.trap_item_weights.value.items()}
+        junk_weights = {name: val for name, val in self.options.custom_junk_item_weights.value.items()}
 
         # Fill traps
-        itempool += self.multiworld.random.choices(list(trap_weights.keys()), weights=list(trap_weights.values()),
+        itempool += self.random.choices(list(trap_weights.keys()), weights=list(trap_weights.values()),
                                                    k=self.trap_item_count)
 
         # Fill remaining items with randomly generated junk
-        itempool += self.multiworld.random.choices(list(junk_weights.keys()), weights=list(junk_weights.values()),
+        itempool += self.random.choices(list(junk_weights.keys()), weights=list(junk_weights.values()),
                                                    k=self.junk_item_count)
 
-        assert len(itempool) == self.multiworld.total_locations[self.player]
+        assert len(itempool) == self.options.total_locations.value
 
         # Convert itempool into real items
         itempool = list(map(lambda name: self.create_item(name), itempool))
-
-        print(len(itempool), self.progression_item_count, self.trap_item_count, self.junk_item_count)
 
         self.multiworld.itempool += itempool
 
@@ -100,23 +96,23 @@ class TheBindingOfIsaacRepentanceWorld(World):
         set_rules(self.multiworld, self.player, self.progression_item_count, self.required_prog_item_factor)
 
     def create_regions(self):
-        create_regions(self.multiworld, self.player, int(self.multiworld.total_locations[self.player].value),
+        create_regions(self.multiworld, self.player, int(self.options.total_locations.value),
                        self.progression_item_count, self.required_prog_item_factor)
 
     def fill_slot_data(self):
         return {
-            "itemPickupStep": self.multiworld.item_pickup_step[self.player].value,
-            "seed": "".join(self.multiworld.per_slot_randoms[self.player].choice(string.digits) for _ in range(16)),
-            "totalLocations": self.multiworld.total_locations[self.player].value,
-            "requiredLocations": self.multiworld.required_locations[self.player].value,
-            "goal": self.multiworld.goal[self.player].value,
-            "additionalBossRewards": self.multiworld.additional_boss_rewards[self.player].value,
-            "deathLink": self.multiworld.death_link[self.player].value,
-            "teleportTrapCanError": self.multiworld.teleport_trap_can_error[self.player].value,
-            "fullNoteAmount": self.multiworld.full_note_amount[self.player].value,
-            "noteMarksAmount": self.multiworld.note_marks_amount[self.player].value,
-            "noteMarkRequireHardMode": self.multiworld.note_marks_require_hard_mode[self.player].value,
-            "splitStartItems": self.multiworld.split_start_items[self.player].value
+            "itemPickupStep": self.options.item_pickup_step.value,
+            "seed": "".join(self.random.choice(string.digits) for _ in range(16)),
+            "totalLocations": self.options.total_locations.value,
+            "requiredLocations": self.options.required_locations.value,
+            "goal": self.options.goal.value,
+            "additionalBossRewards": self.options.additional_boss_rewards.value,
+            "deathLink": self.options.death_link.value,
+            "teleportTrapCanError": self.options.teleport_trap_can_error.value,
+            "fullNoteAmount": self.options.full_note_amount.value,
+            "noteMarksAmount": self.options.note_marks_amount.value,
+            "noteMarkRequireHardMode": self.options.note_marks_require_hard_mode.value,
+            "splitStartItems": self.options.split_start_items.value
         }
 
     def create_item(self, name: str) -> Item:
@@ -177,7 +173,7 @@ def create_region(world: MultiWorld, player: int, name: str, locations=None, exi
             location = TheBindingOfIsaacRepentanceLocation(player, location, loc_id, ret)
             ret.locations.append(location)
     if exits:
-        for exit in exits:
-            ret.exits.append(Entrance(player, exit, ret))
+        for _exit in exits:
+            ret.exits.append(Entrance(player, _exit, ret))
 
     return ret

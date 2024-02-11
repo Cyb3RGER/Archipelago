@@ -1,5 +1,7 @@
 import typing
-from Options import Option, DefaultOnToggle, Toggle, Range, Choice, DeathLink, OptionDict, AssembleOptions
+from dataclasses import dataclass
+
+from Options import DefaultOnToggle, Toggle, Range, Choice, DeathLink, OptionDict, PerGameCommonOptions
 from . import default_weights, default_junk_items_weights, item_table
 from .Items import default_trap_items_weights
 
@@ -177,23 +179,22 @@ class SplitStartItems(Choice):
     option_on_always_6 = 1
     option_on_furthest = 2
 
-
-tobir_options: typing.Dict[str, AssembleOptions] = {
-    "total_locations": TotalLocations,
-    "required_locations": RequiredLocations,
-    "item_pickup_step": ItemPickupStep,
-    "goal": Goal,
-    "full_note_amount": FullNoteAmount,
-    "note_marks_amount": NoteMarkAmount,
-    "note_marks_require_hard_mode": NoteMarksRequireHardMode,
-    "item_weights": ItemWeights,
-    "custom_item_weights": CustomItemWeights,
-    "junk_percentage": JunkPercentage,
-    "custom_junk_item_weights": CustomJunkItemWeights,
-    "trap_percentage": TrapPercentage,
-    "trap_item_weights": TrapItemWeights,
-    "teleport_trap_can_error": TeleportTrapCanError,
-    "additional_boss_rewards": AdditonalBossRewards,
-    "death_link": DeathLink,
-    "split_start_items": SplitStartItems,
-}
+@dataclass
+class IsaacOptions(PerGameCommonOptions):
+    total_locations: TotalLocations
+    required_locations: RequiredLocations
+    item_pickup_step: ItemPickupStep
+    goal: Goal
+    full_note_amount: FullNoteAmount
+    note_marks_amount: NoteMarkAmount
+    note_marks_require_hard_mode: NoteMarksRequireHardMode
+    item_weights: ItemWeights
+    custom_item_weights: CustomItemWeights
+    junk_percentage: JunkPercentage
+    custom_junk_item_weights: CustomJunkItemWeights
+    trap_percentage: TrapPercentage
+    trap_item_weights: TrapItemWeights
+    teleport_trap_can_error: TeleportTrapCanError
+    additional_boss_rewards: AdditonalBossRewards
+    death_link: DeathLink
+    split_start_items: SplitStartItems
