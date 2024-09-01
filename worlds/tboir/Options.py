@@ -2,8 +2,8 @@ import typing
 from dataclasses import dataclass
 
 from Options import DefaultOnToggle, Toggle, Range, Choice, DeathLink, OptionDict, PerGameCommonOptions
-from . import default_weights, default_junk_items_weights, item_table
-from .Items import default_trap_items_weights
+from .Items import default_weights, default_junk_items_weights, default_trap_items_weights, collectible_items, \
+    junk_items, trap_items
 
 
 class TotalLocations(Range):
@@ -15,6 +15,7 @@ class TotalLocations(Range):
 
 
 class RequiredLocations(Range):
+    # ToDo: make this a percentage? + Add warning for when these are actually required
     """Number of location checks required to beat the game."""
     display_name = "Required Locations"
     range_start = 1
@@ -23,7 +24,7 @@ class RequiredLocations(Range):
 
 
 class Goal(Choice):
-    """Goal to finish the run. Note that note marks and full notes do include the Cent Sign note mark as greed mode is
+    """Goal to finish the run. Note that note marks and full notes do not include the Cent Sign note mark as greed mode is
     not supported yet. """
     display_name = "Goal"
     option_mom = 0
@@ -49,7 +50,7 @@ class Goal(Choice):
 
 class NoteMarkAmount(Range):
     """Number of note marks needed to beat the game (if goal is note marks). """
-    display_name = "Full Note Amount"
+    display_name = "Note Mark Amount"
     range_start = 1
     range_end = 374
     default = 20
@@ -66,7 +67,7 @@ class FullNoteAmount(Range):
 class NoteMarksRequireHardMode(Toggle):
     """If set on Note Marks are only considered complete if the run was on hard mode.
     Relevant for both full notes and note marks goal"""
-    display_name = "Note marks require hard mode"
+    display_name = "Note Marks Require Hard Mode"
 
 
 class ItemPickupStep(Range):
@@ -78,6 +79,146 @@ class ItemPickupStep(Range):
     range_start = 1
     range_end = 5
     default = 1
+
+
+class StageUnlocks(Choice):
+    """
+    Determine how stages are unlocked in AP.
+    Not every stage has a unique
+    None: Stages are not locked.
+    Progressive: Stages are locked behind progressive unlock items.
+    Unique: Stages can be unlocked out of order.
+    """
+    display_name = "Stage Unlocks"
+    option_none = 0
+    option_progressive = 1
+    option_unique = 2
+    default = 1
+
+
+class IncludeAltStageUnlocks(Toggle):
+    """
+    Includes unlock items for alternative stage.
+    Requires Logic Mode to be set to a stage unlock mode.
+    """
+    display_name = "Include Alternative Stage Unlocks"
+
+
+class LocationsByStage(DefaultOnToggle):
+    """
+    Splits locations per stage so specific locations are mapped to a stage (i.e. Basement I, Basement II, etc.).
+    """
+    display_name = "Locations By Stage"
+
+
+class IncludeAltStageLocations(DefaultOnToggle):
+    """
+    Should alternative stages (Downpour/Mines/Mausoleum/Corpse I/II) have separate locations to their counterparts.
+    This brings the total number of stages from 15 to 23.
+    """
+
+
+class LocationsByRoomType(DefaultOnToggle):
+    """
+    Splits locations per room type so specific locations are mapped to a certain room type (i.e. Treasure room, Planetarium).
+    """
+    display_name = "Locations By Room Type"
+
+
+class LocationAmountShop(Range):
+    """
+    Amount of locations in Shops.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Shop"
+    range_start = 0
+    range_end = 50
+    default = 15
+
+
+class LocationAmountTreasure(Range):
+    """
+    Amount of locations in Treasure Rooms.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Treasure Room"
+    range_start = 0
+    range_end = 50
+    default = 25
+
+
+class LocationAmountBoss(Range):
+    """
+    Amount of locations in Boss Rooms.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Boss Room"
+    range_start = 0
+    range_end = 50
+    default = 20
+
+
+class LocationAmountSecret(Range):
+    """
+    Amount of locations in Secret Rooms.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Secret Room"
+    range_start = 0
+    range_end = 50
+    default = 3
+
+
+class LocationAmountDevil(Range):
+    """
+    Amount of locations in Devil Deals.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Devil Deal"
+    range_start = 0
+    range_end = 50
+    default = 15
+
+
+class LocationAmountAngel(Range):
+    """
+    Amount of locations in Angel Deals.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Angel Deal"
+    range_start = 0
+    range_end = 50
+    default = 15
+
+
+class LocationAmountPlanetarium(Range):
+    """
+    Amount of locations in Planetariums.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Planetarium"
+    range_start = 0
+    range_end = 50
+    default = 2
+
+
+class LocationAmountOther(Range):
+    """
+    Amount of locations in all other rooms.
+    When "Locations Per Stage" is non-0, this is not an absolute amount but rather a weight.
+    Needs "Locations By Room Type" to be on.
+    """
+    display_name = "Location Amount: Other Rooms"
+    range_start = 0
+    range_end = 50
+    default = 5
 
 
 class AdditonalBossRewards(DefaultOnToggle):
@@ -94,12 +235,20 @@ class AdditonalBossRewards(DefaultOnToggle):
     display_name = "Additional Boss Rewards"
 
 
-class JunkPercentage(Range):
-    """Percentage of junk items (Non-Collectable Pickups like Coins, Bombs etc.)"""
-    display_name = "Junk Percentage"
-    range_start = 0
+class CollectibleAmount(Range):
+    """Amount of Collectibles to find. This will be capped by the total amount of locations available."""
+    display_name = "Collectible Amount"
+    range_start = 20
     range_end = 100
-    default = 75
+    default = 30
+
+
+# class JunkPercentage(Range):
+#     """Percentage of junk items (Non-Collectable Pickups like Coins, Bombs etc.)"""
+#     display_name = "Junk Percentage"
+#     range_start = 0
+#     range_end = 100
+#     default = 75
 
 
 class TrapPercentage(Range):
@@ -142,7 +291,7 @@ class CustomItemWeights(CustomItemWeightsBase):
     """
     display_name = "Custom Item Weights"
     default = default_weights
-    valid_keys = {key for (key, value) in item_table.items() if value.is_progression()}
+    valid_keys = {key for key in collectible_items.keys()}
 
 
 class CustomJunkItemWeights(CustomItemWeightsBase):
@@ -153,7 +302,7 @@ class CustomJunkItemWeights(CustomItemWeightsBase):
     """
     display_name = "Custom Junk Item Weights"
     default = default_junk_items_weights
-    valid_keys = {key for key, value in item_table.items() if value.is_filler()}
+    valid_keys = {key for key in junk_items.keys()}
 
 
 class TrapItemWeights(CustomItemWeightsBase):
@@ -164,7 +313,7 @@ class TrapItemWeights(CustomItemWeightsBase):
     """
     display_name = "Custom Trap Item Weights"
     default = default_trap_items_weights
-    valid_keys = {key for key, value in item_table.items() if value.is_trap()}
+    valid_keys = {key for key in trap_items.keys()}
 
 
 class SplitStartItems(Choice):
@@ -179,8 +328,22 @@ class SplitStartItems(Choice):
     option_on_always_6 = 1
     option_on_furthest = 2
 
+
 @dataclass
 class IsaacOptions(PerGameCommonOptions):
+    stage_unlocks: StageUnlocks
+    include_alt_stage_unlocks: IncludeAltStageUnlocks
+    locations_by_stage: LocationsByStage
+    include_alt_stage_locations: IncludeAltStageLocations
+    locations_by_room_type: LocationsByRoomType
+    location_amount_treasure: LocationAmountTreasure
+    location_amount_shop: LocationAmountShop
+    location_amount_boss: LocationAmountBoss
+    location_amount_secret: LocationAmountSecret
+    location_amount_angel: LocationAmountAngel
+    location_amount_devil: LocationAmountDevil
+    location_amount_planetarium: LocationAmountPlanetarium
+    location_amount_other: LocationAmountOther
     total_locations: TotalLocations
     required_locations: RequiredLocations
     item_pickup_step: ItemPickupStep
@@ -190,7 +353,8 @@ class IsaacOptions(PerGameCommonOptions):
     note_marks_require_hard_mode: NoteMarksRequireHardMode
     item_weights: ItemWeights
     custom_item_weights: CustomItemWeights
-    junk_percentage: JunkPercentage
+    collectible_amount: CollectibleAmount
+    # junk_percentage: JunkPercentage
     custom_junk_item_weights: CustomJunkItemWeights
     trap_percentage: TrapPercentage
     trap_item_weights: TrapItemWeights

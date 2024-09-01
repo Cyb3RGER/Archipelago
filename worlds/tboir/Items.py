@@ -1,5 +1,6 @@
 import typing
 from BaseClasses import Item, ItemClassification
+from .Names import alt_stage_names, unlock_item_names
 
 
 class ItemData(typing.NamedTuple):
@@ -43,8 +44,16 @@ trap_items = {
     "Wavy Cap Trap": ItemData(base_id + 777, ItemClassification.trap),
 }
 
-# 78000 - 78???
-item_table = {
+stage_unlock_items = {
+    "Progressive Stage Unlock": ItemData(base_id + 778, ItemClassification.progression),
+    "Progressive Alt. Stage Unlock": ItemData(base_id + 779, ItemClassification.progression),
+    **{
+        f"{v} Unlock": ItemData(base_id + 779 + i, ItemClassification.progression) for i, v in
+        enumerate(unlock_item_names + alt_stage_names)
+    }
+}
+
+collectible_items = {
     # items (main)
     "Treasure Room Item": ItemData(base_id + 0, ItemClassification.progression),
     "Shop Item": ItemData(base_id + 1, ItemClassification.progression),
@@ -78,7 +87,6 @@ item_table = {
     "Baby Shop Item": ItemData(base_id + 28, ItemClassification.progression),
     "Wooden Chest Item": ItemData(base_id + 29, ItemClassification.progression),
     "Rotten Beggar Item": ItemData(base_id + 30, ItemClassification.progression),
-    **junk_items,
     # all collectables -> for start inv
     "Sad Onion": ItemData(base_id + 40, ItemClassification.progression),
     "Inner Eye": ItemData(base_id + 41, ItemClassification.progression),
@@ -806,7 +814,14 @@ item_table = {
     "Glass Eye": ItemData(base_id + 769, ItemClassification.progression),
     "Stye": ItemData(base_id + 770, ItemClassification.progression),
     "Moms Ring": ItemData(base_id + 771, ItemClassification.progression),
-    **trap_items,
+
+}
+
+item_table = {
+    **junk_items,  # 31-39
+    **collectible_items,  # 0-30, 40-771
+    **trap_items,  # 772-777
+    **stage_unlock_items,  # 778-798
     # other
     "Victory": ItemData(None, ItemClassification.progression),
 }
