@@ -93,7 +93,7 @@ class TheBindingOfIsaacRepentanceWorld(World):
         self.multiworld.itempool += itempool
 
     def set_rules(self):
-        set_rules(self.multiworld, self.player, self.progression_item_count, self.required_prog_item_factor)
+        set_rules(self.multiworld, self.player, self.options.required_locations.value, self.progression_item_count, self.required_prog_item_factor)
 
     def create_regions(self):
         create_regions(self.multiworld, self.player, int(self.options.total_locations.value),
